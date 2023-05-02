@@ -1,0 +1,70 @@
+version: '3.3'
+services:
+  redis-master:
+    container_name: "redis-master"
+    image: redis:6.0-alpine
+    platform: linux/amd64
+    command: redis-server --maxmemory 3mb --maxmemory-policy noeviction
+    ports:
+      - "6379:6379"
+
+  redis-slave:
+    container_name: "redis-slave"
+    image: redis:6.0-alpine
+    platform: linux/amd64
+    command: redis-server --slaveof redis-master 6379 --maxmemory 3mb --maxmemory-policy noeviction
+    depends_on:
+      - redis-master
+
+
+  redis-sentinel1:
+    container_name: redis-sentinel1
+    build:
+      context: ./redis-sentinel/1
+    platform: linux/amd64
+    ports:
+      - "5001:5001"
+    volumes:
+      - "./sentinel/sentinel.conf:/etc/sentinel.conf"
+    links:
+      - redis-master
+    depends_on:
+      - redis-master
+
+
+
+  redis-sentinel2:
+    container_name: redis-sentinel2
+    build:
+      context: ./redis-sentinel/2
+    platform: linux/amd64
+    depends_on:
+      - redis-master
+    links:
+      - redis-master
+    ports:
+      - "5002:5002"
+
+  redis-sentinel3:
+    container_name: redis-sentinel3
+    build:
+      context: ./redis-sentinel/3
+    platform: linux/amd64
+    depends_on:
+      - redis-master
+    links:
+      - redis-master
+    ports:
+      - "5003:5003"
+
+  redis-cache:
+    container_name: redis-cache
+    build:
+      context: redis-cache
+      dockerfile: Dockerfile
+    image: redis-cache:latest
+    restart: always
+    ports:
+      - '127.0.0.1:8080:8080'
+    depends_on:
+      - redis-master
