@@ -9,7 +9,6 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 
 @Configuration
-@EnableRedisRepositories("com.hsa.redis.sentinel.redis.repository")
 public class RedisConfiguration {
 
   @Value("spring.data.redis.sentinel.master")
@@ -19,7 +18,7 @@ public class RedisConfiguration {
   JedisConnectionFactory jedisConnectionFactory() {
     JedisConnectionFactory jedisConFactory
         = new JedisConnectionFactory();
-    jedisConFactory.setHostName("localhost");
+    jedisConFactory.setHostName(hostname);
     jedisConFactory.setPort(6379);
     return jedisConFactory;
   }
